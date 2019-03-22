@@ -1,0 +1,51 @@
+---
+title: "A Quick Data Model Visualization using datamodelr"
+author: "Kim Ferguson"
+date: "`r Sys.Date()` (Created: 2019/03/22)"
+subtitle: "ninja presentation: built using yihui\xaringan "
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    include:
+  after_body: footer.html
+
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)  
+options(servr.daemon = TRUE)
+library(datamodelr)
+library(DiagrammeR)
+library(V8)
+
+library(readxl)
+  
+```
+
+class: inverse, center, middle
+
+#  R and the datamodelr package from bergant\datamodelr
+
+---
+
+# Hello World (White Slide)
+
+--
+
+
+# Output 
+
+
+![](https://github.com/kfergo55/QuickDataModel/downloadData.svg)
+
+---
+
+class: center, middle
+
+# Thanks!
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
