@@ -87,8 +87,12 @@ datamodel <- dm_add_references(
   SalesOrderHeader$`Sales Person ID` == Salesperson$SalesPersonID,
   SalesOrderHeader$`Territory ID` == SalesTerritory$`Territory ID`)
 
+
 # specify the graph to be read right to left
-graph <- dm_create_graph(datamodel, rankdir = "RL", col_attr = c("column"))
+graph <- dm_create_graph(datamodel, 
+                         graph_attrs = "rankdir = RL, bgcolor = '#F4F0EF', splines = ortho ", 
+                         edge_attrs = "dir = both, arrowtail = crow, arrowhead = odiamond",
+                         node_attrs = "fontname = 'Arial'")
 dm_render_graph(graph)
 
 

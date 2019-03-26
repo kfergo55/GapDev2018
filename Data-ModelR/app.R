@@ -107,7 +107,10 @@ get_graph <- function(x, rankdir = "RL", view_type = "all") {
   
   ret <- ""
   try({
-    graph <- dm_create_graph(dm, rankdir = rankdir, view_type = view_type)
+    graph <- dm_create_graph(dm, graph_attrs = "bgcolor = '#F4F0EF', splines = ortho, model = subset",
+                             rankdir = rankdir, view_type = view_type, 
+                             edge_attrs = "dir = both, arrowtail = crow, arrowhead = odiamond",
+                             node_attrs = "fontname = 'Arial'")
     ret <- graph$dot_code
   })
   ret
@@ -161,7 +164,11 @@ server = function(input, output, session){
   output$downloadData <- downloadHandler(
     filename = "export.svg",
     content = function(file) {
-      graph <- dm_create_graph(dm, rankdir = input$rankdir, view_type = input$view_type)
+      graph <- dm_create_graph(dm, 
+                               graph_attrs = "bgcolor = '#F4F0EF', splines = ortho ",
+                               rankdir = input$rankdir, view_type = input$view_type,
+                               edge_attrs = "dir = both, arrowtail = crow, arrowhead = odiamond",
+                               node_attrs = "fontname = 'Arial'")
       dm_export_graph(graph, file, file_type = "svg");
     },
     contentType = "image/svg+xml"
@@ -169,7 +176,11 @@ server = function(input, output, session){
   output$downloadDataPng <- downloadHandler(
     filename = "export.png",
     content = function(file) {
-      graph <- dm_create_graph(dm, rankdir = input$rankdir, view_type = input$view_type)
+      graph <- dm_create_graph(dm, 
+                               graph_attrs = "bgcolor = '#F4F0EF', splines = ortho ",
+                               rankdir = input$rankdir, view_type = input$view_type,
+                               edge_attrs = "dir = both, arrowtail = crow, arrowhead = odiamond",
+                               node_attrs = "fontname = 'Arial'")
       dm_export_graph(graph, file, file_type = "png");
     },
     contentType = "image/png"
