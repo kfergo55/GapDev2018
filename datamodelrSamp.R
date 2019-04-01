@@ -1,18 +1,22 @@
 
 #####################################
-# Reshape data for use in datamodelr
-# Use this code for testing prior to 
-# adapting to shiny or on it's own.
+# This code will build a data model
+# using Bergeant's datamodelr package
+# using  dm_from_data_frames option
 
 
 # 
 # setup the environment first
 
+# Cran version here:
 #install.packages("datamodelr")
 #library(datamodelr)
 
+# Github version available in case you have
+# a version issue
 library(devtools)
-#install_github("bergant/datamodelr")
+#devtools::install_github("bergant/datamodelr")
+
 library(datamodelr)
 library(DiagrammeR)
 library(V8)
@@ -23,11 +27,11 @@ library(readxl)
 ######################################
 # Read in the Excel files
 
-# assume home directory for location of files
+# set file path -assume home directory for location of files
 excel_path1 <- "~/Adventure_Works_Data_Definitions.xlsx"
 excel_path2 <- "~/Adventure_Works_version_2.xlsx"
 
-# read in the sheets - 
+# read in the sheets that have data - ignore the rest
 EmployeeHR <- read_excel(path=excel_path2, sheet = 1)
 BusinessEntityAddress <- read_excel(path=excel_path2, sheet = 2)
 Salesperson <- read_excel(path=excel_path2, sheet = 3)
@@ -55,10 +59,14 @@ datamodel <- dm_add_references(
   SalesOrderHeader$`Territory ID` == SalesTerritory$`Territory ID`)
 
 
-# specify the graph to be read right to left
+# datamodelr is actually using a graph object to build this visualization (grViz)
+# so we specify the graph to be read right to left, give it a background color,
+# change the curved spline to a squared edge between nodes, 
+# add diamond/crows feet to the edges, and the Arial font
 graph <- dm_create_graph(datamodel, 
                          graph_attrs = "rankdir = RL, bgcolor = '#F4F0EF', splines = ortho ", 
                          edge_attrs = "dir = both, arrowtail = crow, arrowhead = odiamond",
                          node_attrs = "fontname = 'Arial'")
+# show it!
 dm_render_graph(graph)
 

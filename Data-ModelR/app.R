@@ -22,11 +22,11 @@ library(readxl)
 ######################################
 # Read in the Excel files
 
-# assume home directory for location of files
+# set file path -assume home directory for location of files
 excel_path1 <- "~/Adventure_Works_Data_Definitions.xlsx"
 excel_path2 <- "~/Adventure_Works_version_2.xlsx"
 
-# read in the sheets - 
+# read in the sheets that have data - ignore the rest
 EmployeeHR <- read_excel(path=excel_path2, sheet = 1)
 BusinessEntityAddress <- read_excel(path=excel_path2, sheet = 2)
 Salesperson <- read_excel(path=excel_path2, sheet = 3)
@@ -56,7 +56,6 @@ datamodel <- dm_add_references(
 # SHINY ADAPTION - move the following block to the shiny server section
 # and add the ability to pass parameters for viewing options
 ####################################################
-# specify the graph to be read right to left
 # graph <- dm_create_graph(datamodel, rankdir = "RL", col_attr = c("column"))
 
 # dm_render_graph(graph)
