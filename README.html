@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>A Quick Data Model Visualization</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Kim Ferguson" />
+    <meta name="date" content="2019-04-02" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <script src="libs/kePrint/kePrint.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: right, top, inverse, A Quick Data Model Visualization, title-slide
+
+# A Quick Data Model Visualization
+## built with R and datamodelr
+### Kim Ferguson
+### 2019-04-02
+
+---
+
+
+
+
+class: inverse, center, middle
+
+#  credit: [github.com/bergant/datamodelr](github.com/bergant/datamodelr)
+
+---
+class: center
+
+# Visualizing Data at a High Level
+&lt;img src="https://raw.githubusercontent.com/kfergo55/QuickDataModel/master/images/Capture1.PNG", width= "70%" &gt;
+
+
+---
+# So why build  a Data Model with datamodelr? 
+It's a quick and effective way to communicate the structure of data...
+
+.pull-left[
+- **Includes** table names, column names, data types and key references
+
+- **Includes** ability to use colors and pretty fonts 
+
+- It's **Open Source** so no software license hassles.
+ 
+]
+.pull-right[
+- **Doesn't Include** all UML bells and whistles.
+
+-  for example: no ability to specify one-to-one, one-to-many or many-to-many relationships. (future enhancement perhaps?)
+
+]
+--
+
+### It's especially handy when dealing with alternate data sources!
+
+CSV files, Excel spreadsheets, even Spark tables. If you can read data into R as a dataframe you can visualize it as a data model with a little effort!
+---
+
+class: center, bottom, inverse
+
+# It's so easy... Let's do this...
+---
+# First
+- Download the code from github:  [https://github.com/kfergo55/QuickDataModel](https://github.com/kfergo55/QuickDataModel)  
+
+--
+
+## Next - what's the down low on our data?
+- we'll use the public dataset for a fictitious bicycle company called Adventure Works. 
+
+- It's spread across multiple sheets in 2 spreadsheets files 
+
+- We are using the actual data "tables" and not the data definitions (they don't match anyway)
+
+.footnote[
+[1] To follow along: from RStudio, open file [https://github.com/kfergo55/QuickDataModel/datamodelrSamp.R](https://github.com/kfergo55/QuickDataModel/datamodelrSamp.R)
+
+]
+
+---
+# Setup the Environment
+
+```r
+install.packages("readxl")
+library(readxl)
+
+install.packages("datamodelr")
+library(datamodelr)
+
+install.packages("Diagrammer")
+library(DiagrammeR)
+```
+---
+# Read the files
+
+
+```r
+# set file path -assume home directory for location of files
+excel_path1 &lt;- "~/Adventure_Works_Data_Definitions.xlsx"
+excel_path2 &lt;- "~/Adventure_Works_version_2.xlsx"
+
+# read in the sheets that have data - ignore the rest
+EmployeeHR &lt;- read_excel(path=excel_path2, sheet = 1)
+BusinessEntityAddress &lt;- read_excel(path=excel_path2, sheet = 2)
+Salesperson &lt;- read_excel(path=excel_path2, sheet = 3)
+Contact &lt;- read_excel(path=excel_path2, sheet = 4)
+EmployeePayHistory &lt;- read_excel(path=excel_path2, sheet = 5)
+Address &lt;- read_excel(path=excel_path2, sheet = 6)
+SalesTerritory &lt;- read_excel(path=excel_path1, sheet = 8)
+SalesOrderHeader &lt;- read_excel(path=excel_path1, sheet = 9)
+```
+##### variable names -&gt; will be your table names, so choose wisely!
+.footnote[
+
+
+(the Adventure Works .xlsx files are in the github directory, peruse at your leisure)
+
+]
+---
+### Here's a peek at the data frames in R...
+
+Employee data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Birth Date &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Business Entity ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Current Flag &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Gender &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Hire Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Job Title &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Login ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Marital Status &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Modified Date &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; National ID Number &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Organization Node &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Rowguid &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Salaried Flag &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Number of Records &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Organization Level &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sick Leave Hours &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Vacation Hours &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1963-03-02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; TRUE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; M &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2003-02-15 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Chief Executive Officer &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; adventure-works\ken0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; S &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2008-07-31 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 295847284 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; F01251E5-96A3-448D-981E-0F99D789110D &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; TRUE &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 99 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+ Salesperson data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Business Entity ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Modified Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Rowguid &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sales Last Year &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Territory ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Bonus &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Commission Pct &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Number of Records &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sales Quota &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sales YTD &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 274 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-01-28 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 48754992-9EE0-4C0E-8C94-9451604E3E02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 559697.6 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+ Contact data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Additional Contact Info &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; BusinessEntityID (Person) &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; First Name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Last Name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Middle Name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; ModifiedDate (Person) &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Name Style &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; rowguid (Person) &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Suffix &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Title &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Email Promotion &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Ken &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Sánchez &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; J &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2003-02-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 92C4279F-1207-48A3-8448-4636514EB7E2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+---
+
+Employee Pay History data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Business Entity ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Modified Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Rate Change Date &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Number of Records &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Pay Frequency &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Rate &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2008-07-31 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2003-02-15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 125.5 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+ Business Entity Address data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Address ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Address Type ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Business Entity ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Modified Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Rowguid &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Number of Records &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 249 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2008-10-13 11:15:07 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3A5D0A00-6739-4DFE-A8F7-844CD9DEE3DF &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+  Address data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Address ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AddressLine1 &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AddressLine2 &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; City &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Country Region Code &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Is Only State Province Flag &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Modified Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; ModifiedDate (StateProvince) &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Postal Code &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Rowguid &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; rowguid (StateProvince) &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Spatial Location &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; State Province Code &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; State Province ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; StateProvinceID (StateProvince) &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Territory ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Number of Records &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1970 Napa Ct. &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Bothell &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; US &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2002-01-04 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2008-03-11 10:17:22 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Washington &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 98011 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 9AADCB0D-36CF-483F-84D8-585C2D4EC6E9 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 16274DF0-6F05-43A6-BC18-AD171017A1EB &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; #Error &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; WA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 79 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 79 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+ Sales Territory data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Cost Last Year &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Country Region Code &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Group &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Modified Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Rowguid &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sales Last Year &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Territory ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Cost YTD &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Number of Records &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sales YTD &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; US &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; North America &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2002-06-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Northwest &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 43689A10-E30B-497F-B0DE-11DE20267FF7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3298694 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7887187 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+  
+
+---
+AND finally.. Sales Order data: &lt;table class="table" style="font-size: 9px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Account Number &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Bill To Address ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Comment &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Credit Card Approval Code &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Credit Card ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Currency Rate ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Customer ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Due Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Modified Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Online Order Flag &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Order Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Purchase Order Number &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Revision Number &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Rowguid &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sales Order ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Sales Order Number &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sales Person ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Ship Date &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Ship Method ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Ship To Address ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Territory ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Freight &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Number of Records &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Status &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sub Total &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tax Amt &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Total Due &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000001 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 105571Vi99678 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19181 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29773 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-08-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-08-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-08-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO16646146654 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; D2745233-B05B-409C-93BB-4451569F4253 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 43860 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO43860 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 280 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-08-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 330.4013 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10993.394 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1057.2843 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12381.080 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000001 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 105516Vi99678 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19181 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29773 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-11-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-11-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-11-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO16646128920 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1A116F86-71E4-40A2-A32C-4938D8977D26 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44501 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO44501 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 280 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-11-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 591.1508 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19669.411 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1891.6827 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22152.245 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000001 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 105493Vi99678 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19181 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29773 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-02-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-02-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-02-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO16646111452 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; F57AB920-675E-4B1D-B43C-8EA091CF6F38 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45283 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO45283 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 280 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-02-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 851.6547 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28395.219 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2725.2950 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31972.168 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000001 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 105533Vi99678 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19181 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29773 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-05-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-05-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-05-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO16646156443 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 62991BDA-C42D-494F-9EF1-2754BEC25FAE &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 46042 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO46042 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 280 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-05-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 832 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 785.5880 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26119.057 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2513.8817 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29418.527 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000002 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 833 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15832Vi51504 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29816 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-08-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-08-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-08-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO14558186797 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 8A533BE6-0669-470A-B361-796DD1CD0ED4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 46976 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO46976 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 283 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-08-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 297 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 230.4090 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7759.388 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 737.3088 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8727.105 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000002 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 833 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15790Vi51504 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29816 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-11-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-11-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-11-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO14558139554 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1FAAD98B-1DE0-4B80-A804-9FBBB6F289EB &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 47997 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO47997 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 283 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2006-11-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 297 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 123.7465 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4162.956 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 395.9887 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4682.691 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000002 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 833 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15786Vi51504 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29816 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-02-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-02-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-02-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO14558112909 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 01C5EFDE-5C6E-47C9-B1AE-077937989297 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 49054 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO49054 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 283 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-02-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 297 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39.3531 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1320.635 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 125.9300 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1485.918 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000002 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 833 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15795Vi51504 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29816 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-05-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-05-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-05-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO14558158414 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 00A755D8-7BD9-4B12-AF58-E4EF22D39AA1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 50216 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO50216 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 283 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-05-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 297 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 43.7900 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1484.457 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 140.1279 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1668.375 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000002 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 833 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15862Vi51504 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29816 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-08-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-08-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-08-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO14558119777 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; C2B5D4CC-113E-4102-884B-22A6DACEEDE6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 51728 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO51728 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 283 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2007-08-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 297 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 88.3542 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3107.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 282.7334 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3478.110 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10-4020-000003 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 559 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 38409Vi26986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5164 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29637 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-09-13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-09-08 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-09-01 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; PO6786110112 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0F0EB783-FA76-466D-9A0A-2F88C1C7EDE8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44124 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; SO44124 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 277 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-09-08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 559 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 463.8954 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15439.036 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1484.4652 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17387.396 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+        
+---
+
+class: center, bottom, inverse
+
+# now we throw all of those dataframes at datamodelr... 
+
+---
+### datamodelr converts the data frames to a data model 
+
+
+```r
+datamodel &lt;- dm_from_data_frames(EmployeeHR,
+                                 BusinessEntityAddress,
+                                 Salesperson, 
+                                 Contact, 
+                                 EmployeePayHistory, 
+                                 Address, 
+                                 SalesTerritory,  
+                                 SalesOrderHeader)
+```
+
+
+---
+
+### Do a little work here by connecting the data frames:
+
+
+```r
+datamodel &lt;- dm_add_references(
+  datamodel,
+  BusinessEntityAddress$`Business Entity ID` == EmployeeHR$`Business Entity ID`,
+  BusinessEntityAddress$`Address ID` == Address$`Address ID`,
+  Salesperson$`Business Entity ID` == EmployeeHR$`Business Entity ID`,
+  Contact$`BusinessEntityID (Person)` == EmployeeHR$`Business Entity ID`,
+  EmployeePayHistory$`Business Entity ID` == EmployeeHR$`Business Entity ID`,
+  Address$`Territory ID` == SalesTerritory$`Territory ID`,
+  SalesOrderHeader$`Sales Person ID` == Salesperson$`Business Entity ID`,
+  SalesOrderHeader$`Territory ID` == SalesTerritory$`Territory ID`)
+```
+#### This is where we join the keys. Child on the left, Parent on the right.
+---
+background-position: 50% 50%
+class: center, bottom, inverse
+
+# Nearly there...
+---
+### Now datamodelr will create and render the graph  
+
+```r
+graph &lt;- dm_create_graph(datamodel, 
+              graph_attrs = "rankdir = RL, bgcolor = '#F4F0EF', splines = ortho ", 
+              edge_attrs = "dir = both, arrowtail = crow, arrowhead = odiamond",
+              node_attrs = "fontname = 'Arial'")
+
+dm_render_graph(graph)
+```
+
+#### add in some extras...
+- draw the graph from right to left (RL) 
+- add a background color 
+- square off the lines
+- add a diamond connector to the parent table and a crows feet at the child table
+- change the font to Arial
+---
+background-position: 50% 50%
+class: center, bottom, inverse
+
+# Voila...
+
+---
+&lt;img src="https://raw.githubusercontent.com/kfergo55/QuickDataModel/master/downloadDataPng.png", width= "50%" &gt;
+---
+## Shiny App Version:
+&lt;img src="https://raw.githubusercontent.com/kfergo55/QuickDataModel/master/images/Capture2.PNG", width= "90%" &gt;
+---
+
+background-position: 50% 50%
+class: center, bottom, inverse
+
+# That's all folks...
+
+---
+
+class: center, middle
+
+# Thanks!
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

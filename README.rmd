@@ -87,6 +87,8 @@ class: center, bottom, inverse
 ---
 # Setup the Environment
 ```{r eval=FALSE}
+install.packages("readxl")
+library(readxl)
 
 install.packages("datamodelr")
 library(datamodelr)
@@ -94,8 +96,7 @@ library(datamodelr)
 install.packages("Diagrammer")
 library(DiagrammeR)
 
-install.packages("readxl")
-library(readxl)
+
 ```
 ---
 # Read the files
@@ -190,7 +191,7 @@ dm_render_graph(graph)
 ```
 
 #### add in some extras...
-- draw graph RL (right to left) 
+- draw the graph from right to left (RL) 
 - add a background color 
 - square off the lines
 - add a diamond connector to the parent table and a crows feet at the child table
@@ -221,5 +222,3 @@ class: center, middle
 
 Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
 
-
-(I should have called it Quick AND Easy Data Model!)
