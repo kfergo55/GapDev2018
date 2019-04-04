@@ -1,6 +1,6 @@
 ---
 title: "A Quick Data Model Visualization"
-subtitle: "built with R and datamodelr"
+subtitle: "built with <img src='https://www.tutorialgateway.org/wp-content/uploads/R-Programming-Language-Tutorial.png', width= '10%'> and datamodelr"
 author: "Kim Ferguson"
 date: "`r Sys.Date()`"
 output:
@@ -11,6 +11,8 @@ output:
       highlightLines: true
       countIncrementalSlides: false
       titleSlideClass: ["right", "top", "inverse", "A Quick Data Model Visualization"]
+    editor_options: 
+      chunk_output_type: console
 
 ---
 
@@ -190,7 +192,7 @@ graph <- dm_create_graph(datamodel,
 dm_render_graph(graph)
 ```
 
-#### add in some extras...
+#### this will add in a few extras...
 - draw the graph from right to left (RL) 
 - add a background color 
 - square off the lines
